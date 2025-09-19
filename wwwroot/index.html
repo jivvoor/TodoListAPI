@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo 관리</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        /* 로그인/회원가입 폼 스타일 */
+        .auth-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        
+        .auth-tab.active {
+            background: #007bff;
+            color: white;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .auth-button {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .auth-button:hover {
+            background: #0056b3;
+        }
+        
+        /* Todo 앱 스타일 */
+        .todo-app {
+            display: none;
+        }
+        
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .add-todo {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .add-todo input {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .add-todo button {
+            width: 25%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .add-todo button:hover {
+            background: #0056b3;
+        }
+        
+        .todo-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background: white;
+        }
+        
+        .todo-item.completed {
+            background: #f8f9fa;
+            opacity: 0.7;
+        }
+        
+        .todo-item input[type="checkbox"] {
+            margin-right: 15px;
+            transform: scale(1.2);
+        }
+        
+        .todo-text {
+            flex: 1;
+            font-size: 16px;
+        }
+        
+        .todo-text.completed {
+            text-decoration: line-through;
+            color: #666;
+        }
+        
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+        
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .success {
+            color: #28a745;
+            text-align: center;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Todo 관리</h1>
+        
+        <!-- 로그인/회원가입 화면 -->
+        <div id="authContainer" class="auth-container">
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchTab('login')">로그인</div>
+                <div class="auth-tab" onclick="switchTab('register')">회원가입</div>
+            </div>
+            
+            <div id="authMessage"></div>
+            
+            <!-- 로그인 폼 -->
+            <form id="loginForm" class="auth-form active" onsubmit="login(event)">
+                <div class="form-group">
+                    <label>사용자명</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="auth-button">로그인</button>
+            </form>
+            
+            <!-- 회원가입 폼 -->
+            <form id="registerForm" class="auth-form" onsubmit="register(event)">
+                <div class="form-group">
+                    <label>사용자명</label>
+                    <input type="text" id="registerUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>이메일</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <button type="submit" class="auth-button">회원가입</button>
+            </form>
+        </div>
+        
+        <!-- Todo 앱 화면 -->
+        <div id="todoApp" class="todo-app">
+            <div class="user-info">
+                <span>안녕하세요, <strong id="currentUsername"></strong>님!</span>
+                <button class="logout-btn" onclick="logout()">로그아웃</button>
+            </div>
+            
+            <div class="add-todo">
+                <input type="text" id="newTodoInput" placeholder="새로운 할일을 입력하세요...">
+                <button onclick="addTodo()">추가</button>
+            </div>
+            
+            <div id="loading" class="loading" style="display: none;">할일 목록을 불러오는 중...</div>
+            <ul id="todoList" class="todo-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        let currentToken = null;
+        let currentUser = null;
+
+        // 페이지 로드 시 토큰 확인
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            const username = localStorage.getItem('username');
+            
+            if (token && username) {
+                currentToken = token;
+                currentUser = username;
+                showTodoApp();
+                loadTodos();
+            }
+        };
+
+        // 탭 전환
+        function switchTab(tab) {
+            const loginTab = document.querySelector('.auth-tab:first-child');
+            const registerTab = document.querySelector('.auth-tab:last-child');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            
+            if (tab === 'login') {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+            } else {
+                loginTab.classList.remove('active');
+                registerTab.classList.add('active');
+                loginForm.classList.remove('active');
+                registerForm.classList.add('active');
+            }
+            
+            clearMessage();
+        }
+
+        // 회원가입
+        async function register(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                const data = await response.text();
+                
+                if (response.ok) {
+                    showMessage('회원가입이 완료되었습니다! 로그인해주세요.', 'success');
+                    switchTab('login');
+                    document.getElementById('registerForm').reset();
+                } else {
+                    showMessage(data, 'error');
+                }
+            } catch (error) {
+                showMessage('회원가입에 실패했습니다.', 'error');
+            }
+        }
+
+        // 로그인
+        async function login(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentToken = data.token;
+                    currentUser = data.username;
+                    
+                    // 로컬 스토리지에 저장
+                    localStorage.setItem('token', currentToken);
+                    localStorage.setItem('username', currentUser);
+                    
+                    showTodoApp();
+                    loadTodos();
+                } else {
+                    const errorText = await response.text();
+                    showMessage(errorText, 'error');
+                }
+            } catch (error) {
+                showMessage('로그인에 실패했습니다.', 'error');
+            }
+        }
+
+        // 로그아웃
+        function logout() {
+            currentToken = null;
+            currentUser = null;
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            
+            document.getElementById('authContainer').style.display = 'block';
+            document.getElementById('todoApp').style.display = 'none';
+            
+            document.getElementById('loginForm').reset();
+            clearMessage();
+        }
+
+        // Todo 앱 화면 표시
+        function showTodoApp() {
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('todoApp').style.display = 'block';
+            document.getElementById('currentUsername').textContent = currentUser;
+        }
+
+        // 메시지 표시
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('authMessage');
+            messageDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        function clearMessage() {
+            document.getElementById('authMessage').innerHTML = '';
+        }
+
+        // JWT 토큰을 포함한 API 요청 헬퍼
+        function apiRequest(url, options = {}) {
+            return fetch(url, {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${currentToken}`,
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+        }
+
+        // 할일 목록 로드
+        async function loadTodos() {
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await apiRequest(`${API_BASE}/todos`);
+                
+                if (response.ok) {
+                    const todos = await response.json();
+                    displayTodos(todos);
+                } else if (response.status === 401) {
+                    logout();
+                    return;
+                } else {
+                    showMessage('할일 목록을 불러오는데 실패했습니다.', 'error');
+                }
+            } catch (error) {
+                console.error('할일 목록 로드 실패:', error);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // 할일 목록 화면에 표시
+        function displayTodos(todos) {
+            const todoList = document.getElementById('todoList');
+            todoList.innerHTML = '';
+            
+            if (todos.length === 0) {
+                todoList.innerHTML = '<li style="text-align: center; color: #666; padding: 20px;">등록된 할일이 없습니다.</li>';
+                return;
+            }
+            
+            todos.forEach(todo => {
+                const li = document.createElement('li');
+                li.className = `todo-item ${todo.isCompleted ? 'completed' : ''}`;
+                
+                li.innerHTML = `
+                    <input type="checkbox" ${todo.isCompleted ? 'checked' : ''} 
+                           onchange="toggleTodo(${todo.id}, ${!todo.isCompleted})">
+                    <span class="todo-text ${todo.isCompleted ? 'completed' : ''}">${todo.title}</span>
+                    <button class="delete-btn" onclick="deleteTodo(${todo.id})">삭제</button>
+                `;
+                
+                todoList.appendChild(li);
+            });
+        }
+
+        // 새 할일 추가
+        async function addTodo() {
+            const input = document.getElementById('newTodoInput');
+            const title = input.value.trim();
+            
+            if (!title) {
+                alert('할일을 입력해주세요!');
+                return;
+            }
+            
+            try {
+                const response = await apiRequest(`${API_BASE}/todos`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title: title,
+                        isCompleted: false
+                    })
+                });
+                
+                if (response.ok) {
+                    input.value = '';
+                    loadTodos();
+                } else if (response.status === 401) {
+                    logout();
+                } else {
+                    alert('할일 추가에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('할일 추가 실패:', error);
+                alert('할일 추가에 실패했습니다.');
+            }
+        }
+
+        // 할일 완료/미완료 토글
+        async function toggleTodo(id, isCompleted) {
+            try {
+                const response = await apiRequest(`${API_BASE}/todos/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        title: '',
+                        isCompleted: isCompleted
+                    })
+                });
+                
+                if (response.ok) {
+                    loadTodos();
+                } else if (response.status === 401) {
+                    logout();
+                } else {
+                    alert('할일 상태 변경에 실패했습니다.');
+                    loadTodos();
+                }
+            } catch (error) {
+                console.error('할일 상태 변경 실패:', error);
+                alert('할일 상태 변경에 실패했습니다.');
+                loadTodos();
+            }
+        }
+
+        // 할일 삭제
+        async function deleteTodo(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            try {
+                const response = await apiRequest(`${API_BASE}/todos/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    loadTodos();
+                } else if (response.status === 401) {
+                    logout();
+                } else {
+                    alert('할일 삭제에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('할일 삭제 실패:', error);
+                alert('할일 삭제에 실패했습니다.');
+            }
+        }
+
+        // 엔터키로 할일 추가
+        document.addEventListener('DOMContentLoaded', function() {
+            const newTodoInput = document.getElementById('newTodoInput');
+            if (newTodoInput) {
+                newTodoInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        addTodo();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
